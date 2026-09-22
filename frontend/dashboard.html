@@ -78,7 +78,7 @@ body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;height:1
 .lb-dot{width:5px;height:5px;border-radius:50%;background:#ef4444;animation:blink 1s infinite}
 
 .vid-wrap{flex:1;background:#020408;margin:0 14px;border-radius:12px;border:1px solid var(--b);overflow:hidden;position:relative;min-height:260px}
-#vfeed{width:100%;height:100%;object-fit:cover;display:block}
+#vfeed{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}
 .vid-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--t3);font-size:.82rem;background:#020408}
 .vid-overlay{position:absolute;bottom:10px;left:10px;right:10px;display:flex;justify-content:space-between;pointer-events:none}
 .vot{background:rgba(8,13,26,.88);border:1px solid var(--b);border-radius:6px;padding:4px 10px;font-size:.72rem;font-family:'JetBrains Mono',monospace;backdrop-filter:blur(8px)}
@@ -182,13 +182,11 @@ body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;height:1
     </div>
 
     <div class="vid-wrap">
-      <img id="vfeed" src="/video_feed" alt="webcam"
-           onerror="this.style.display='none';document.getElementById('vph').style.display='flex'"
-           onload="document.getElementById('vph').style.display='none'"/>
-      <div class="vid-placeholder" id="vph" style="display:none">
+      <video id="vfeed" autoplay muted playsinline></video>
+      <div class="vid-placeholder" id="vph">
         <div style="font-size:2.5rem">📷</div>
-        <div>Camera not connected</div>
-        <div style="font-size:.74rem;margin-top:4px">Run <code style="background:rgba(124,58,237,.15);padding:1px 6px;border-radius:4px">python app.py</code> first</div>
+        <div id="cameraMessage">Camera permission required</div>
+        <button id="startCamera" class="tb-back" type="button">Allow camera</button>
       </div>
       <div class="vid-overlay">
         <div class="vot" id="fpstag">— FPS</div>
@@ -241,7 +239,8 @@ const EMO_EMOJI = {
 const NEGATIVE = ['sad','angry','fear','disgust','confused']
 
 // ── State ────────────────────────────────────────────────
-const T0       = Date.now()
+const API_URL  = 'https://emosense-backend.onrender.com'
+const T0        = Date.now()
 let tlArr      = []
 let alerts     = []
 let emoCount   = {}
@@ -263,23 +262,57 @@ setInterval(() => {
     `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`
 }, 1000)
 
-// ── FPS counter ──────────────────────────────────────────
+// ── Browser camera and Render analysis ───────────────────
 const vfeed = document.getElementById('vfeed')
-vfeed.addEventListener('load', () => {
-  fpsCount++
-  const now = Date.now()
-  if (now - fpsLast >= 1000) {
-    fps = fpsCount
-    fpsCount = 0
-    fpsLast = now
-    document.getElementById('fpstag').textContent = `${fps} FPS`
-  }
-})
+const canvas = document.createElement('canvas')
+const cameraMessage = document.getElementById('cameraMessage')
+let cameraStream = null
+let analyzing = false
 
-// ── Poll /status every 800ms ─────────────────────────────
+async function startCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 640 }, height: { ideal: 480 } },
+      audio: false
+    })
+    vfeed.srcObject = cameraStream
+    document.getElementById('vph').style.display = 'none'
+    setStatus('Camera ready', 'loading')
+  } catch (error) {
+    cameraMessage.textContent = 'Camera permission was denied or unavailable'
+    setStatus('Camera unavailable', 'error')
+  }
+}
+
+async function analyzeFrame() {
+  if (!cameraStream || analyzing || vfeed.readyState < 2) return
+  analyzing = true
+  canvas.width = 640
+  canvas.height = 480
+  canvas.getContext('2d').drawImage(vfeed, 0, 0, canvas.width, canvas.height)
+  try {
+    const response = await fetch(`${API_URL}/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: canvas.toDataURL('image/jpeg', 0.72) })
+    })
+    if (!response.ok) throw new Error('analysis failed')
+    updateUI(await response.json())
+    fpsCount++
+  } catch (error) {
+    setStatus('Backend unavailable', 'error')
+  } finally {
+    analyzing = false
+  }
+}
+
+document.getElementById('startCamera').addEventListener('click', startCamera)
+setInterval(analyzeFrame, 1200)
+
+// ── Poll backend status every 800ms ──────────────────────
 async function poll() {
   try {
-    const r = await fetch('/status')
+    const r = await fetch(`${API_URL}/status`)
     if (!r.ok) throw new Error('not ok')
     const d = await r.json()
     updateUI(d)
@@ -289,6 +322,12 @@ async function poll() {
 }
 setInterval(poll, 500)
 poll()
+
+setInterval(() => {
+  fps = fpsCount
+  fpsCount = 0
+  document.getElementById('fpstag').textContent = `${fps} analyses/min`
+}, 60000)
 
 // ── Update all UI from real API data ─────────────────────
 function updateUI(d) {

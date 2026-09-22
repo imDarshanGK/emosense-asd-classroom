@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/dashboard", "destination": "/dashboard.html" },
-    { "source": "/home", "destination": "/index.html" }
+    { "source": "/dashboard", "destination": "/frontend/dashboard.html" },
+    { "source": "/home", "destination": "/frontend/index.html" },
+    { "source": "/(.*)", "destination": "/frontend/$1" }
   ]
 }
