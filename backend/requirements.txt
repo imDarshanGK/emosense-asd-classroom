@@ -1,7 +1,7 @@
 # Recommended runtime: Python 3.10 or 3.11
 # Python 3.14 is not compatible with the TensorFlow builds required by DeepFace.
 
-opencv-python>=4.8.0,<5.0
+opencv-python-headless>=4.8.0,<5.0
 deepface>=0.0.79
 flask>=3.0.0
 flask-cors>=4.0.0
@@ -13,3 +13,4 @@ Pillow>=10.0.0
 # Install the CPU build on supported Python versions.
 tensorflow>=2.15.0,<2.16.0 ; python_version < "3.12"
 tf-keras>=2.15.0,<2.16.0 ; python_version < "3.12"
+gunicorn>=21.2.0,<24.0

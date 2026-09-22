@@ -65,16 +65,20 @@ The Flask app captures the webcam on the computer where `app.py` runs. Vercel ca
 ## Project structure
 
 ```text
-app.py                    Main Flask app
-emotion_detector.py       Standalone detector script
-test_accuracy.py          Accuracy test script
-download_test_images.py   Local image capture helper
-index.html                Landing page demo
-templates/dashboard.html  Flask dashboard template
-requirements.txt          Dependency list
-HOW_TO_RUN.txt            Setup guide
-README.md                 Project overview
+frontend/index.html       Vercel landing page
+frontend/dashboard.html  Vercel browser-camera dashboard
+backend/app.py           Render Flask + DeepFace API
+backend/requirements.txt  Backend dependency list
+backend/test_accuracy.py  Accuracy test script
+backend/HOW_TO_RUN.txt   Local setup guide
+README.md                Project overview
 ```
+
+## Deployment layout
+
+Deploy the repository root to Vercel for the frontend. Deploy the `backend` directory to Render using `gunicorn app:app --workers 1 --threads 4 --timeout 120`. The browser requests camera permission locally and sends frames to the Render `/analyze` endpoint; Render no longer needs a physical webcam.
+
+Before deploying, replace the backend URL in `frontend/dashboard.html` if your Render service receives a different hostname than `https://emosense-backend.onrender.com`.
 
 ## License
 

@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: emosense-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 1 --threads 4 --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.11
+      - key: FRONTEND_ORIGIN
+        value: https://emosense-asd-classroom.vercel.app

@@ -49,7 +49,8 @@ Then open:
 
 STEP 7: Use the dashboard
 -------------------------
-- The app will start the webcam stream and emotion detection thread.
+- The backend waits for browser frames at the /analyze endpoint.
+- The frontend requests the visitor's webcam and sends sampled frames for analysis.
 - The dashboard shows live status and recent emotion history.
 - Audio alerts work only when pyttsx3 can initialize on your machine.
 
@@ -57,8 +58,8 @@ STEP 7: Use the dashboard
   TROUBLESHOOTING
 ============================================================
 
-Problem: "Camera not found"
-Fix: close any app that is using the webcam, then restart the app.
+Problem: "Camera permission was denied or unavailable"
+Fix: open the frontend over HTTPS, allow camera access in the browser, and close other apps using the webcam.
 
 Problem: "ModuleNotFoundError: deepface"
 Fix: run: pip install -r requirements.txt
