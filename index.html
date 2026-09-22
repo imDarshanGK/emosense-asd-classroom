@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>EmoSense AI — Emotion Detection for Autistic Children</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#05080f;--bg2:#0a0f1c;--card:#0f1628;--card2:#141d32;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --purple:#7c3aed;--purple-l:#a78bfa;--purple-d:#4c1d95;
+  --green:#10b981;--green-l:#34d399;
+  --blue:#3b82f6;--blue-l:#93c5fd;
+  --red:#ef4444;--amber:#f59e0b;
+  --text:#f8fafc;--text2:#cbd5e1;--text3:#64748b;
+  --font:'Inter',sans-serif;--font2:'Space Grotesk',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden}
+
+/* ── UTILITY ── */
+.container{width:min(1320px,100%);max-width:100%;margin:0 auto;padding:0 32px}
+.tag{display:inline-flex;align-items:center;gap:6px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);border-radius:100px;padding:5px 14px;font-size:.78rem;color:var(--purple-l);font-weight:500;margin-bottom:20px}
+.tag-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+.grad-text{background:linear-gradient(135deg,#a78bfa 0%,#34d399 50%,#60a5fa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:0 32px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all .3s;
+}
+nav.stuck{background:rgba(5,8,15,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(20px)}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-family:var(--font2);font-size:1.05rem;font-weight:600}
+.brand-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--green));display:flex;align-items:center;justify-content:center;font-size:17px}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{color:var(--text3);font-size:.875rem;text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-btn{background:var(--purple);color:#fff;padding:9px 22px;border-radius:8px;font-size:.875rem;font-weight:600;text-decoration:none;transition:all .2s;font-family:var(--font2)}
+.nav-btn:hover{background:#6d28d9;transform:translateY(-1px)}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;
+  display:flex;align-items:center;
+  padding:100px 0 60px;
+  position:relative;overflow:hidden;
+}
+/* Background glow blobs */
+.hero::before{
+  content:'';position:absolute;
+  width:600px;height:600px;
+  background:radial-gradient(circle,rgba(124,58,237,.12),transparent 70%);
+  top:10%;left:0%;pointer-events:none;
+}
+.hero::after{
+  content:'';position:absolute;
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(16,185,129,.07),transparent 70%);
+  bottom:10%;right:5%;pointer-events:none;
+}
+.hero-inner{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:60px;align-items:center;
+  position:relative;z-index:1;
+}
+.hero-left{}
+.hero-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:24px}
+.hero-eyebrow-text{font-size:.8rem;color:var(--text3)}
+.hero-eyebrow-sep{width:24px;height:1px;background:var(--border2)}
+.hero-eyebrow-badge{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:100px;padding:3px 10px;font-size:.72rem;color:var(--green-l);display:flex;align-items:center;gap:5px}
+.eyebrow-live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:glow-pulse 2s infinite}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}70%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+
+.hero h1{font-family:var(--font2);font-size:3.6rem;font-weight:700;line-height:1.05;letter-spacing:-.03em;margin-bottom:22px}
+.hero-sub{font-size:1.05rem;color:var(--text2);line-height:1.75;margin-bottom:40px;max-width:480px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn-solid{display:inline-flex;align-items:center;gap:8px;background:var(--purple);color:#fff;padding:13px 28px;border-radius:9px;font-size:.95rem;font-weight:600;text-decoration:none;font-family:var(--font2);transition:all .25s;box-shadow:0 0 24px rgba(124,58,237,.3)}
+.btn-solid:hover{background:#6d28d9;transform:translateY(-2px);box-shadow:0 0 40px rgba(124,58,237,.5)}
+.btn-solid svg{width:16px;height:16px}
+.btn-outline{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--text2);padding:13px 28px;border-radius:9px;font-size:.95rem;font-weight:500;text-decoration:none;border:1px solid var(--border2);transition:all .25s}
+.btn-outline:hover{border-color:rgba(255,255,255,.25);color:var(--text);background:rgba(255,255,255,.04)}
+
+/* ── HERO VISUAL — Dashboard Preview ── */
+.hero-right{position:relative}
+.dashboard-preview{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 32px 80px rgba(0,0,0,.6),0 0 0 1px var(--border);
+}
+.dp-titlebar{
+  background:var(--card2);
+  padding:12px 16px;
+  display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid var(--border);
+}
+.dp-dot{width:10px;height:10px;border-radius:50%}
+.dp-dot:nth-child(1){background:#ef4444}
+.dp-dot:nth-child(2){background:#f59e0b}
+.dp-dot:nth-child(3){background:#22c55e}
+.dp-title{font-size:.75rem;color:var(--text3);margin-left:auto;font-family:'Space Grotesk',sans-serif}
+
+.dp-body{padding:16px;display:grid;grid-template-columns:160px 1fr;gap:12px}
+
+/* Left mini panel */
+.dp-left{display:flex;flex-direction:column;gap:10px}
+.dp-emo-card{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:10px;padding:14px;text-align:center;
+  border-top:2px solid var(--green);
+}
+.dp-emo-emoji{font-size:2rem;display:block;margin-bottom:4px}
+.dp-emo-name{font-family:var(--font2);font-size:.95rem;font-weight:700;color:var(--green)}
+.dp-emo-conf{font-size:.68rem;color:var(--text3);margin-top:2px}
+
+.dp-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.dp-stat{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center}
+.dp-stat-val{font-family:var(--font2);font-size:1.1rem;font-weight:700;color:var(--purple-l)}
+.dp-stat-lbl{font-size:.6rem;color:var(--text3);margin-top:1px}
+
+/* Right video area */
+.dp-video-area{
+  background:#020408;border-radius:10px;
+  border:1px solid var(--border);
+  aspect-ratio:16/10;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.dp-video-label{
+  position:absolute;top:10px;left:10px;
+  background:rgba(5,8,15,.8);border:1px solid var(--border);
+  border-radius:5px;padding:3px 8px;font-size:.65rem;
+  color:var(--green);font-family:'Space Grotesk',sans-serif;
+  display:flex;align-items:center;gap:4px;
+}
+.dp-video-dot{width:4px;height:4px;border-radius:50%;background:var(--green);animation:glow-pulse 1.5s infinite}
+.dp-video-icon{text-align:center;color:var(--text3)}
+.dp-video-icon-emoji{font-size:2.5rem;display:block;margin-bottom:6px}
+.dp-video-icon-text{font-size:.72rem}
+
+/* ── STATS BAR ── */
+.stats-bar{
+  background:var(--card);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:40px 0;
+  margin:0;
+}
+.stats-inner{display:grid;grid-template-columns:repeat(4,1fr);divide:var(--border)}
+.stat-item{text-align:center;padding:0 20px;border-right:1px solid var(--border)}
+.stat-item:last-child{border-right:none}
+.stat-number{font-family:var(--font2);font-size:2.6rem;font-weight:700;line-height:1}
+.stat-label{font-size:.82rem;color:var(--text3);margin-top:6px}
+
+/* ── HOW IT WORKS ── */
+.section{padding:96px 0}
+.section-head{text-align:center;margin-bottom:64px}
+.section-head h2{font-family:var(--font2);font-size:2.4rem;font-weight:700;letter-spacing:-.02em;margin-bottom:12px}
+.section-head p{color:var(--text2);font-size:1rem;max-width:520px;margin:0 auto;line-height:1.7}
+
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.step-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:32px;
+  transition:all .25s;position:relative;overflow:hidden;
+}
+.step-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--purple),var(--green));
+  transform:scaleX(0);transform-origin:left;transition:transform .3s;
+}
+.step-card:hover{border-color:var(--border2);transform:translateY(-4px)}
+.step-card:hover::before{transform:scaleX(1)}
+.step-num{font-family:var(--font2);font-size:2.8rem;font-weight:700;color:rgba(124,58,237,.15);line-height:1;margin-bottom:16px}
+.step-icon{font-size:2rem;margin-bottom:12px;display:block}
+.step-card h3{font-family:var(--font2);font-size:1.05rem;font-weight:600;margin-bottom:10px}
+.step-card p{font-size:.875rem;color:var(--text2);line-height:1.65}
+
+/* ── FEATURES ── */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.feat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:28px;transition:all .25s;
+}
+.feat-card:hover{background:var(--card2);border-color:var(--border2);transform:translateY(-2px)}
+.feat-icon-wrap{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:18px}
+.feat-card h3{font-family:var(--font2);font-size:1rem;font-weight:600;margin-bottom:9px}
+.feat-card p{font-size:.855rem;color:var(--text2);line-height:1.65}
+
+/* ── ACCURACY SECTION ── */
+.accuracy-section{background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.accuracy-inner{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;padding:96px 0}
+.acc-bars{}
+.acc-bar-title{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:20px;font-family:var(--font2)}
+.acc-bar-row{margin-bottom:16px}
+.acc-bar-row:last-child{margin-bottom:0}
+.acc-bar-top{display:flex;justify-content:space-between;font-size:.84rem;margin-bottom:6px}
+.acc-bar-lbl{color:var(--text2);display:flex;align-items:center;gap:6px}
+.acc-bar-pct{color:var(--green-l);font-weight:600;font-family:'Space Grotesk',sans-serif}
+.acc-track{height:7px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
+.acc-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--purple),var(--green));transition:width 1.8s ease}
+.acc-content h2{font-family:var(--font2);font-size:2.2rem;font-weight:700;letter-spacing:-.02em;margin-bottom:14px}
+.acc-content p{color:var(--text2);line-height:1.75;margin-bottom:24px;font-size:.95rem}
+.acc-chips{display:flex;flex-wrap:wrap;gap:8px}
+.acc-chip{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:100px;padding:5px 14px;font-size:.78rem;color:var(--purple-l)}
+
+/* ── TECH STACK ── */
+.tech-section{padding:80px 0}
+.tech-head{text-align:center;margin-bottom:40px}
+.tech-head h2{font-family:var(--font2);font-size:1.6rem;font-weight:600;margin-bottom:8px}
+.tech-head p{color:var(--text3);font-size:.88rem}
+.tech-chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.tech-chip{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:12px 20px;
+  display:flex;align-items:center;gap:10px;
+  font-size:.875rem;color:var(--text2);
+  transition:all .2s;
+}
+.tech-chip:hover{border-color:var(--border2);color:var(--text);transform:translateY(-2px)}
+.tech-chip-icon{font-size:1.1rem}
+
+/* ── HOW TO RUN ── */
+.run-section{padding:80px 0}
+.run-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:48px;
+  display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;
+}
+.run-left h2{font-family:var(--font2);font-size:2rem;font-weight:700;margin-bottom:14px}
+.run-left p{color:var(--text2);line-height:1.7;margin-bottom:28px;font-size:.95rem}
+.run-steps{display:flex;flex-direction:column;gap:14px}
+.run-step{display:flex;align-items:flex-start;gap:14px}
+.run-step-num{width:28px;height:28px;border-radius:50%;background:var(--purple);color:#fff;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:var(--font2)}
+.run-step-text{font-size:.875rem;color:var(--text2);line-height:1.6}
+.run-step-text code{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.25);border-radius:4px;padding:1px 7px;font-size:.8rem;color:var(--purple-l);font-family:'Courier New',monospace}
+.run-right{}
+.code-block{
+  background:#020408;border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;
+}
+.code-block-header{
+  background:var(--card2);padding:10px 16px;
+  display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid var(--border);
+}
+.code-block-dots{display:flex;gap:6px}
+.code-block-dot{width:9px;height:9px;border-radius:50%}
+.code-block-label{font-size:.72rem;color:var(--text3);margin-left:auto;font-family:'Space Grotesk',sans-serif}
+.code-block-body{padding:20px;font-family:'Courier New',monospace;font-size:.82rem;line-height:2}
+.c-comment{color:var(--text3)}
+.c-prompt{color:var(--purple-l)}
+.c-cmd{color:var(--green-l)}
+.c-out{color:var(--text3);font-style:italic}
+
+/* ── CTA ── */
+.cta-section{
+  padding:100px 0;text-align:center;
+  background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(124,58,237,.1),transparent);
+}
+.cta-section h2{font-family:var(--font2);font-size:2.8rem;font-weight:700;letter-spacing:-.02em;margin-bottom:14px;max-width:640px;margin-left:auto;margin-right:auto}
+.cta-section p{color:var(--text2);max-width:440px;margin:0 auto 40px;line-height:1.7}
+.cta-buttons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border);padding:28px 40px;display:flex;justify-content:space-between;align-items:center;font-size:.8rem;color:var(--text3)}
+footer a{color:var(--text3);text-decoration:none}
+footer a:hover{color:var(--text)}
+
+/* ── SCROLL ANIMATIONS ── */
+.reveal{opacity:1;transform:none;transition:opacity .55s ease,transform .55s ease}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .hero-inner,.accuracy-inner,.run-card{grid-template-columns:1fr}
+  .hero-right{display:none}
+  .stats-inner,.steps-grid,.features-grid,.deploy-grid{grid-template-columns:1fr}
+  nav{padding:0 20px}
+  .nav-links{display:none}
+  .hero h1{font-size:2.4rem}
+  footer{flex-direction:column;gap:8px;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-brand">
+    <div class="brand-icon">🧠</div>
+    EmoSense AI
+  </a>
+  <div class="nav-links">
+    <a href="#how">How It Works</a>
+    <a href="#features">Features</a>
+    <a href="#accuracy">Accuracy</a>
+    <a href="#run">Get Started</a>
+  </div>
+  <a href="/dashboard" class="nav-btn">Open Dashboard →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <h1>Explore facial-expression signals in your <span class="grad-text">classroom prototype</span></h1>
+
+        <p class="hero-sub">
+          EmoSense AI is an experimental local tool that uses a webcam and DeepFace to visualize facial-expression signals. It is not a diagnostic or clinical system, and results depend on lighting, camera quality, and the person in view.
+        </p>
+
+        <div class="hero-actions">
+          <a href="/dashboard" class="btn-solid">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><polygon points="6,5 11,8 6,11"/></svg>
+            Open Live Dashboard
+          </a>
+          <a href="#how" class="btn-outline">See How It Works</a>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <!-- Static dashboard preview — no fake data, just UI mockup -->
+        <div class="dashboard-preview">
+          <div class="dp-titlebar">
+            <div class="dp-dot"></div>
+            <div class="dp-dot"></div>
+            <div class="dp-dot"></div>
+            <span class="dp-title">EmoSense AI — Teacher Dashboard</span>
+          </div>
+          <div class="dp-body">
+            <div class="dp-left">
+              <div class="dp-emo-card">
+                <span class="dp-emo-emoji">😊</span>
+                <div class="dp-emo-name">DEMO</div>
+                <div class="dp-emo-conf">Waiting for camera</div>
+              </div>
+              <div class="dp-stats">
+                <div class="dp-stat"><div class="dp-stat-val">--</div><div class="dp-stat-lbl">Session</div></div>
+                <div class="dp-stat"><div class="dp-stat-val">--</div><div class="dp-stat-lbl">Alerts</div></div>
+                <div class="dp-stat"><div class="dp-stat-val">--</div><div class="dp-stat-lbl">Detected</div></div>
+                <div class="dp-stat"><div class="dp-stat-val">--</div><div class="dp-stat-lbl">Confidence</div></div>
+              </div>
+            </div>
+            <div class="dp-video-area">
+              <div class="dp-video-label">
+                <span class="dp-video-dot"></span>
+                DEMO
+              </div>
+              <div class="dp-video-icon">
+                <span class="dp-video-icon-emoji">📷</span>
+                <div class="dp-video-icon-text" style="color:rgba(100,116,139,.7);font-size:.7rem">Your webcam appears here<br/>when app.py is running</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Floating badge -->
+        <div style="position:absolute;bottom:-16px;right:24px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:8px;backdrop-filter:blur(12px)">
+          <span style="font-size:1rem">🔔</span>
+          <div>
+            <div style="font-size:.72rem;font-weight:600;color:#34d399;font-family:'Space Grotesk',sans-serif">Audio Alert Active</div>
+            <div style="font-size:.65rem;color:var(--text3)">Triggers after 5s of distress</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="container">
+    <div class="stats-inner">
+      <div class="stat-item">
+        <div class="stat-number grad-text">1</div>
+        <div class="stat-label">Webcam Input</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number grad-text">7</div>
+        <div class="stat-label">Emotion Labels from Model</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number grad-text">0</div>
+        <div class="stat-label">Extra Hardware Needed</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number grad-text">100%</div>
+        <div class="stat-label">Local Processing</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="tag"><span class="tag-dot"></span>Process</div>
+      <h2>How EmoSense AI works</h2>
+      <p>Three local components connect the webcam, model, and dashboard. Timing depends on your hardware and setup.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card reveal">
+        <div class="step-num">01</div>
+        <span class="step-icon">📷</span>
+        <h3>Webcam Capture</h3>
+        <p>OpenCV attempts to open an available webcam and streams readable frames to the dashboard. A working camera is required.</p>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-num">02</div>
+        <span class="step-icon">🧠</span>
+        <h3>Emotion Classification</h3>
+        <p>A background thread sends the latest frame to DeepFace approximately every 0.2 seconds. The model returns its supported emotion labels with scores when a face is detected.</p>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-num">03</div>
+        <span class="step-icon">🔔</span>
+        <h3>Teacher Alert</h3>
+        <p>For selected negative labels, the system can speak an audio alert after a sustained interval. This is an experimental signal for human review, not a diagnosis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features" style="padding-top:0">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="tag"><span class="tag-dot"></span>Features</div>
+      <h2>Built for local experimentation</h2>
+      <p>The interface is designed to make a webcam and emotion-model prototype easier to inspect during testing.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap" style="background:rgba(124,58,237,.12)">⚡</div>
+        <h3>Real-Time Detection</h3>
+        <p>DeepFace runs in a dedicated background thread so model work does not block the camera loop. Update speed depends on the computer.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap" style="background:rgba(16,185,129,.1)">🔇</div>
+        <h3>Fully Offline</h3>
+        <p>After dependencies and model files are installed, inference runs locally. The first setup may require downloads, and hardware support still matters.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap" style="background:rgba(59,130,246,.1)">📊</div>
+        <h3>Live Dashboard</h3>
+        <p>Open <code style="background:rgba(59,130,246,.1);border-radius:4px;padding:1px 6px;font-size:.8rem">http://localhost:5000</code> in any browser. See current emotion, confidence bars, timeline, session history.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap" style="background:rgba(239,68,68,.1)">🔊</div>
+        <h3>Audio Alerts</h3>
+        <p>pyttsx3 can speak an alert for selected labels. Audio support depends on the operating system and installed voices.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap" style="background:rgba(245,158,11,.1)">📋</div>
+        <h3>Session History</h3>
+        <p>Every detection logged with timestamp and confidence. Export a full session report as a text file after the class ends.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap" style="background:rgba(124,58,237,.1)">💰</div>
+        <h3>Zero Cost</h3>
+        <p>Uses open-source components and has no built-in subscription or cloud service. Installation still requires compatible Python packages and hardware.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ACCURACY -->
+<div class="accuracy-section" id="accuracy">
+  <div class="container">
+    <div class="accuracy-inner">
+      <div class="acc-bars reveal">
+        <div class="acc-bar-title">Prototype performance note</div>
+        <div class="acc-bar-row">
+          <div class="acc-bar-top"><span class="acc-bar-lbl">📷 Camera setup</span><span class="acc-bar-pct">Demo</span></div>
+          <div class="acc-track"><div class="acc-fill" data-w="90" style="width:0"></div></div>
+        </div>
+        <div class="acc-bar-row">
+          <div class="acc-bar-top"><span class="acc-bar-lbl">🧠 Local model</span><span class="acc-bar-pct">Prototype</span></div>
+          <div class="acc-track"><div class="acc-fill" data-w="70" style="width:0"></div></div>
+        </div>
+        <div class="acc-bar-row">
+          <div class="acc-bar-top"><span class="acc-bar-lbl">⚠️ ASD accuracy</span><span class="acc-bar-pct">Varies</span></div>
+          <div class="acc-track"><div class="acc-fill" data-w="35" style="width:0"></div></div>
+        </div>
+        <div class="acc-bar-row" style="margin-top:8px;padding-top:14px;border-top:1px solid var(--border)">
+          <div class="acc-bar-top"><span class="acc-bar-lbl" style="color:var(--green-l);font-weight:600">Status</span><span class="acc-bar-pct" style="font-size:1.05rem">Demo</span></div>
+          <div class="acc-track" style="height:9px"><div class="acc-fill" data-w="60" style="width:0"></div></div>
+        </div>
+      </div>
+      <div class="acc-content reveal">
+        <div class="tag"><span class="tag-dot"></span>Accuracy note</div>
+        <h2>Prototype readiness, not clinical validation</h2>
+        <p>Performance depends on camera quality, lighting, face angle, model limitations, and the people represented in the training data. This project has not been clinically validated or benchmarked here.</p>
+        <div class="acc-chips">
+          <span class="acc-chip">Local Demo</span>
+          <span class="acc-chip">Open Source</span>
+          <span class="acc-chip">Local Inference</span>
+          <span class="acc-chip">Needs Validation</span>
+          <a class="acc-chip" href="https://data.mendeley.com/datasets/b33pf78h62/1" target="_blank" rel="noopener noreferrer">Dataset Source</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TECH STACK -->
+<div class="tech-section">
+  <div class="container">
+    <div class="tech-head reveal">
+      <h2>Built with trusted open-source tools</h2>
+      <p>The application is intended to run locally after setup; compatibility depends on your Python environment and hardware.</p>
+    </div>
+    <div class="tech-chips reveal">
+      <div class="tech-chip"><span class="tech-chip-icon">🐍</span> Python 3.10+</div>
+      <div class="tech-chip"><span class="tech-chip-icon">👁️</span> OpenCV</div>
+      <div class="tech-chip"><span class="tech-chip-icon">🧠</span> DeepFace</div>
+      <div class="tech-chip"><span class="tech-chip-icon">🌐</span> Flask</div>
+      <div class="tech-chip"><span class="tech-chip-icon">🔊</span> pyttsx3</div>
+      <div class="tech-chip"><span class="tech-chip-icon">📦</span> TensorFlow</div>
+      <div class="tech-chip"><span class="tech-chip-icon">📊</span> FER2013</div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW TO RUN -->
+<section class="run-section" id="run">
+  <div class="container">
+    <div class="run-card reveal">
+      <div class="run-left">
+        <div class="tag"><span class="tag-dot"></span>Get Started</div>
+        <h2>Up and running in 3 steps</h2>
+        <p>Install the compatible dependencies, connect a webcam, and start the Flask server. The first DeepFace model load can take longer than later runs.</p>
+        <div class="run-steps">
+          <div class="run-step">
+            <div class="run-step-num">1</div>
+            <div class="run-step-text">Install all libraries with <code>pip install -r requirements.txt</code> — only needed once</div>
+          </div>
+          <div class="run-step">
+            <div class="run-step-num">2</div>
+            <div class="run-step-text">Run the backend with <code>python app.py</code> — camera and emotion detection start automatically</div>
+          </div>
+          <div class="run-step">
+            <div class="run-step-num">3</div>
+            <div class="run-step-text">Open <code>http://localhost:5000</code> in Chrome — live dashboard with real webcam feed appears</div>
+          </div>
+        </div>
+      </div>
+      <div class="run-right">
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-dots">
+              <div class="code-block-dot" style="background:#ef4444"></div>
+              <div class="code-block-dot" style="background:#f59e0b"></div>
+              <div class="code-block-dot" style="background:#22c55e"></div>
+            </div>
+            <span class="code-block-label">Terminal</span>
+          </div>
+          <div class="code-block-body">
+            <div><span class="c-comment"># 1. Install once</span></div>
+            <div><span class="c-prompt">$</span> <span class="c-cmd">pip install -r requirements.txt</span></div>
+            <div style="margin-top:8px"><span class="c-comment"># 2. Start the system</span></div>
+            <div><span class="c-prompt">$</span> <span class="c-cmd">python app.py</span></div>
+            <div style="margin-top:8px"><span class="c-out">⏳ Checking webcam availability...</span></div>
+            <div><span class="c-out">⏳ Loading DeepFace model...</span></div>
+            <div><span class="c-out">ℹ️ Status depends on camera and environment</span></div>
+            <div style="margin-top:8px"><span class="c-comment"># 3. Open in browser</span></div>
+            <div><span class="c-prompt">→</span> <span class="c-cmd">http://localhost:5000</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <div class="tag" style="margin-bottom:24px"><span class="tag-dot"></span>Try the local demo</div>
+    <h2>Inspect the prototype in your own environment</h2>
+    <p>Start the server, confirm that OpenCV can read your webcam, and treat model output as an experimental signal for human review.</p>
+    <div class="cta-buttons">
+      <a href="/dashboard" class="btn-solid">Open Teacher Dashboard →</a>
+      <a href="#run" class="btn-outline">View Setup Guide</a>
+    </div>
+    <div style="margin-top:32px;font-size:.78rem;color:var(--text3)">
+      Local prototype for classroom experimentation and assistive-tool research
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>🧠 EmoSense AI — Local webcam emotion prototype</div>
+  <div style="display:flex;gap:20px">
+    <a href="#how">How It Works</a>
+    <a href="#features">Features</a>
+    <a href="#run">Get Started</a>
+    <a href="/dashboard">Dashboard</a>
+  </div>
+</footer>
+
+<script>
+// Nav scroll effect
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('stuck', scrollY > 50)
+})
+
+// Scroll reveal
+const revealEls = document.querySelectorAll('.reveal')
+const observer  = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      e.target.classList.add('in')
+      // Trigger accuracy bars
+      e.target.querySelectorAll('.acc-fill[data-w]').forEach(bar => {
+        setTimeout(() => bar.style.width = bar.dataset.w + '%', 200)
+      })
+    }
+  })
+}, { threshold: 0.12 })
+
+revealEls.forEach(el => observer.observe(el))
+
+// Trigger hero items on load
+setTimeout(() => {
+  document.querySelectorAll('.hero .reveal, .hero-left, .hero-right').forEach(el => {
+    el.style.opacity = '1'
+    el.style.transform = 'none'
+  })
+}, 300)
+</script>
+</body>
+</html>
