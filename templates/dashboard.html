@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>EmoSense AI — Teacher Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#080d1a;--s:#0f1629;--p:#141c30;
+  --b:rgba(255,255,255,.07);--b2:rgba(255,255,255,.13);
+  --purple:#7c3aed;--pl:#a78bfa;
+  --green:#10b981;--gl:#34d399;
+  --red:#ef4444;--amber:#f59e0b;--sky:#38bdf8;
+  --happy:#22c55e;--sad:#60a5fa;--angry:#ef4444;
+  --confused:#f59e0b;--neutral:#94a3b8;--fear:#f59e0b;
+  --t:#f8fafc;--t2:#cbd5e1;--t3:#64748b;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* TOPBAR */
+.tb{height:52px;background:var(--s);border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.tb-l{display:flex;align-items:center;gap:10px}
+.tb-logo{display:flex;align-items:center;gap:8px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.95rem}
+.tb-icon{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--purple),var(--green));display:flex;align-items:center;justify-content:center;font-size:14px}
+.tb-live{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--t3);padding-left:12px;border-left:1px solid var(--b)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--gl);box-shadow:0 0 6px var(--gl);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.tb-r{display:flex;align-items:center;gap:10px}
+.tb-clock{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--t3)}
+.tb-status{font-size:.72rem;padding:3px 10px;border-radius:100px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:var(--gl)}
+.tb-status.loading{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2);color:var(--amber)}
+.tb-status.error{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.2);color:var(--red)}
+.tb-back{background:var(--p);border:1px solid var(--b);color:var(--t2);padding:5px 12px;border-radius:6px;font-size:.75rem;text-decoration:none;transition:.2s}
+.tb-back:hover{color:var(--t);border-color:var(--b2)}
+
+/* ALERT */
+.alert{background:rgba(239,68,68,.1);border-bottom:1px solid rgba(239,68,68,.25);padding:8px 20px;display:none;align-items:center;gap:10px;font-size:.82rem;color:#fca5a5;flex-shrink:0}
+.alert.show{display:flex}
+.alert-shake{animation:shake .5s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* 3-COL LAYOUT */
+.grid{display:grid;grid-template-columns:252px 1fr 232px;flex:1;overflow:hidden}
+
+/* ── LEFT ── */
+.left{background:var(--s);border-right:1px solid var(--b);padding:14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+
+.emo-big{background:var(--p);border:1px solid var(--b);border-radius:14px;padding:20px;text-align:center;transition:border-color .4s}
+.emo-big.pos{border-color:rgba(34,197,94,.35)}
+.emo-big.neg{border-color:rgba(239,68,68,.4)}
+.eb-emoji{font-size:3.8rem;display:block;line-height:1;margin-bottom:8px}
+.eb-name{font-family:'Space Grotesk',sans-serif;font-size:1.6rem;font-weight:700}
+.eb-conf{font-size:.75rem;color:var(--t3);margin-top:4px}
+.eb-time{font-size:.7rem;color:var(--t3);margin-top:10px;padding-top:10px;border-top:1px solid var(--b)}
+
+.mini4{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mbox{background:var(--p);border:1px solid var(--b);border-radius:10px;padding:12px;text-align:center}
+.mbox-v{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;color:var(--pl)}
+.mbox-l{font-size:.65rem;color:var(--t3);margin-top:2px}
+
+.conf-panel{background:var(--p);border:1px solid var(--b);border-radius:12px;padding:14px}
+.panel-title{font-size:.67rem;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;font-family:'Space Grotesk',sans-serif;margin-bottom:11px}
+.cf-row{margin-bottom:9px}
+.cf-row:last-child{margin:0}
+.cf-top{display:flex;justify-content:space-between;font-size:.74rem;margin-bottom:4px}
+.cf-lbl{color:var(--t2)}
+.cf-pct{font-family:'JetBrains Mono',monospace;font-weight:500}
+.cf-track{height:5px;background:rgba(255,255,255,.05);border-radius:99px;overflow:hidden}
+.cf-fill{height:100%;border-radius:99px;transition:width .5s ease}
+
+/* ── CENTER ── */
+.center{background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.vid-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;flex-shrink:0}
+.vid-lbl{font-size:.78rem;color:var(--t3);display:flex;align-items:center;gap:6px}
+.live-badge{display:flex;align-items:center;gap:5px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:100px;padding:3px 10px;font-size:.68rem;color:#fca5a5}
+.lb-dot{width:5px;height:5px;border-radius:50%;background:#ef4444;animation:blink 1s infinite}
+
+.vid-wrap{flex:1;background:#020408;margin:0 14px;border-radius:12px;border:1px solid var(--b);overflow:hidden;position:relative;min-height:260px}
+#vfeed{width:100%;height:100%;object-fit:cover;display:block}
+.vid-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--t3);font-size:.82rem;background:#020408}
+.vid-overlay{position:absolute;bottom:10px;left:10px;right:10px;display:flex;justify-content:space-between;pointer-events:none}
+.vot{background:rgba(8,13,26,.88);border:1px solid var(--b);border-radius:6px;padding:4px 10px;font-size:.72rem;font-family:'JetBrains Mono',monospace;backdrop-filter:blur(8px)}
+
+/* TIMELINE */
+.tl{padding:10px 14px 12px;border-top:1px solid var(--b);background:var(--s);flex-shrink:0}
+.tl-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.tl-title{font-size:.67rem;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;font-family:'Space Grotesk',sans-serif}
+.tl-clear{background:none;border:none;color:var(--t3);font-size:.7rem;cursor:pointer;padding:2px 6px;border-radius:4px;transition:.2s}
+.tl-clear:hover{background:var(--p);color:var(--t)}
+.tl-bars{display:flex;gap:3px;align-items:flex-end;height:44px}
+.tl-bar{flex:1;border-radius:3px 3px 0 0;min-height:4px;cursor:default;transition:opacity .2s}
+.tl-empty{font-size:.74rem;color:var(--t3);display:flex;align-items:center;height:44px}
+
+/* ── RIGHT ── */
+.right{background:var(--s);border-left:1px solid var(--b);padding:14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+
+.donut-panel{background:var(--p);border:1px solid var(--b);border-radius:12px;padding:14px;text-align:center}
+#donut{width:130px;height:130px}
+.donut-legend{display:flex;flex-direction:column;gap:5px;margin-top:10px;text-align:left}
+.dl{display:flex;align-items:center;gap:6px;font-size:.72rem}
+.dl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dl-lbl{color:var(--t2);flex:1;text-transform:capitalize}
+.dl-pct{color:var(--t);font-family:'JetBrains Mono',monospace;font-size:.7rem}
+
+.hist-panel{background:var(--p);border:1px solid var(--b);border-radius:12px;padding:14px;flex:1;min-height:0}
+.hist-list{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto}
+.hi{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border-radius:7px;padding:6px 8px}
+.hi-emoji{font-size:.9rem;flex-shrink:0}
+.hi-info{flex:1;min-width:0}
+.hi-emo{font-size:.74rem;font-weight:500;text-transform:capitalize;font-family:'Space Grotesk',sans-serif}
+.hi-ts{font-size:.64rem;color:var(--t3);font-family:'JetBrains Mono',monospace}
+.hi-conf{font-size:.67rem;color:var(--t3);flex-shrink:0}
+
+.alerts-panel{background:var(--p);border:1px solid var(--b);border-radius:12px;padding:14px}
+.al-list{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.al-empty{font-size:.74rem;color:var(--t3);text-align:center;padding:8px 0}
+.al-item{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);border-radius:7px;padding:7px 9px}
+.al-emo{font-size:.74rem;color:#fca5a5;font-weight:500;text-transform:capitalize}
+.al-ts{font-size:.65rem;color:var(--t3);font-family:'JetBrains Mono',monospace}
+
+.exp-btn{background:linear-gradient(135deg,var(--purple),#5b21b6);color:#fff;border:none;border-radius:9px;padding:11px;width:100%;font-size:.82rem;font-weight:600;font-family:'Space Grotesk',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(124,58,237,.3);transition:.2s}
+.exp-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,.5)}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:99px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}.left,.right{display:none}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="tb">
+  <div class="tb-l">
+    <div class="tb-logo"><div class="tb-icon">🧠</div>EmoSense AI</div>
+    <div class="tb-live"><div class="live-dot"></div>Live Session</div>
+  </div>
+  <div class="tb-r">
+    <span class="tb-clock" id="clock">--:--:--</span>
+    <span class="tb-status loading" id="statusMsg">Loading...</span>
+    <a href="/home" class="tb-back">← Home</a>
+  </div>
+</div>
+
+<!-- ALERT BANNER -->
+<div class="alert" id="alertBanner">
+  <span class="alert-shake">⚠️</span>
+  <strong>ALERT</strong> — Child showing distress for 5+ seconds. Please check immediately.
+</div>
+
+<!-- GRID -->
+<div class="grid">
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="emo-big" id="emoBig">
+      <span class="eb-emoji" id="emoEmoji">😐</span>
+      <div class="eb-name" id="emoName" style="color:var(--neutral)">NEUTRAL</div>
+      <div class="eb-conf" id="emoConf">Confidence: waiting...</div>
+      <div class="eb-time" id="emoTime">Waiting for detection</div>
+    </div>
+
+    <div class="mini4">
+      <div class="mbox"><div class="mbox-v" id="mSession">00:00</div><div class="mbox-l">Session</div></div>
+      <div class="mbox"><div class="mbox-v" id="mAlerts">0</div><div class="mbox-l">Alerts</div></div>
+      <div class="mbox"><div class="mbox-v" id="mTotal">0</div><div class="mbox-l">Detected</div></div>
+      <div class="mbox"><div class="mbox-v" id="mPos">—</div><div class="mbox-l">Positive %</div></div>
+    </div>
+
+    <div class="conf-panel">
+      <div class="panel-title">Confidence Scores</div>
+      <div id="confBars"><div style="font-size:.74rem;color:var(--t3)">Waiting for detection...</div></div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center">
+    <div class="vid-hdr">
+      <div class="vid-lbl">📷 Webcam Feed</div>
+      <div class="live-badge"><div class="lb-dot"></div>LIVE DETECTION</div>
+    </div>
+
+    <div class="vid-wrap">
+      <img id="vfeed" src="/video_feed" alt="webcam"
+           onerror="this.style.display='none';document.getElementById('vph').style.display='flex'"
+           onload="document.getElementById('vph').style.display='none'"/>
+      <div class="vid-placeholder" id="vph" style="display:none">
+        <div style="font-size:2.5rem">📷</div>
+        <div>Camera not connected</div>
+        <div style="font-size:.74rem;margin-top:4px">Run <code style="background:rgba(124,58,237,.15);padding:1px 6px;border-radius:4px">python app.py</code> first</div>
+      </div>
+      <div class="vid-overlay">
+        <div class="vot" id="fpstag">— FPS</div>
+        <div class="vot" id="emotag" style="font-weight:600">Detecting...</div>
+      </div>
+    </div>
+
+    <div class="tl">
+      <div class="tl-hdr">
+        <div class="tl-title">Emotion Timeline</div>
+        <button class="tl-clear" onclick="tlArr=[];drawTL()">Clear</button>
+      </div>
+      <div class="tl-bars" id="tlBars"><div class="tl-empty">Waiting for detections...</div></div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="donut-panel">
+      <div class="panel-title" style="text-align:left;margin-bottom:10px">Session Breakdown</div>
+      <canvas id="donut" width="130" height="130"></canvas>
+      <div class="donut-legend" id="donutLg"><div style="font-size:.72rem;color:var(--t3)">No data yet</div></div>
+    </div>
+
+    <div class="hist-panel">
+      <div class="panel-title">Detection Log</div>
+      <div class="hist-list" id="histList"><div style="font-size:.74rem;color:var(--t3);text-align:center;padding:14px">No detections yet</div></div>
+    </div>
+
+    <div class="alerts-panel">
+      <div class="panel-title">Alert History</div>
+      <div class="al-list" id="alList"><div class="al-empty">No alerts triggered</div></div>
+    </div>
+
+    <button class="exp-btn" onclick="exportReport()">📥 Export Session Report</button>
+  </div>
+</div>
+
+<script>
+// ── Config ───────────────────────────────────────────────
+const EMO_COLORS = {
+  happy:'#22c55e', neutral:'#94a3b8', sad:'#60a5fa',
+  angry:'#ef4444', fear:'#f59e0b', confused:'#f59e0b',
+  disgust:'#a78bfa', surprise:'#38bdf8'
+}
+const EMO_EMOJI = {
+  happy:'😊', neutral:'😐', sad:'😢', angry:'😠',
+  fear:'😨', confused:'😨', disgust:'🤢', surprise:'😲'
+}
+const NEGATIVE = ['sad','angry','fear','disgust','confused']
+
+// ── State ────────────────────────────────────────────────
+const T0       = Date.now()
+let tlArr      = []
+let alerts     = []
+let emoCount   = {}
+let prevAlerts = 0
+let fpsCount   = 0
+let fpsLast    = Date.now()
+let fps        = 0
+
+// ── Clock ────────────────────────────────────────────────
+setInterval(() => {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString()
+}, 1000)
+
+// ── Session timer ────────────────────────────────────────
+setInterval(() => {
+  const e = Math.floor((Date.now() - T0) / 1000)
+  document.getElementById('mSession').textContent =
+    `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`
+}, 1000)
+
+// ── FPS counter ──────────────────────────────────────────
+const vfeed = document.getElementById('vfeed')
+vfeed.addEventListener('load', () => {
+  fpsCount++
+  const now = Date.now()
+  if (now - fpsLast >= 1000) {
+    fps = fpsCount
+    fpsCount = 0
+    fpsLast = now
+    document.getElementById('fpstag').textContent = `${fps} FPS`
+  }
+})
+
+// ── Poll /status every 800ms ─────────────────────────────
+async function poll() {
+  try {
+    const r = await fetch('/status')
+    if (!r.ok) throw new Error('not ok')
+    const d = await r.json()
+    updateUI(d)
+  } catch(e) {
+    setStatus('Cannot reach server', 'error')
+  }
+}
+setInterval(poll, 500)
+poll()
+
+// ── Update all UI from real API data ─────────────────────
+function updateUI(d) {
+  const emo  = (d.emotion  || 'neutral').toLowerCase()
+  const conf = d.confidence || 0
+  const tot  = d.total     || 0
+  const col  = EMO_COLORS[emo] || '#94a3b8'
+  const neg  = NEGATIVE.includes(emo)
+
+  // Status badge
+  const msg = d.status_msg || ''
+  if (msg === 'Live')              setStatus('● Live', 'live')
+  else if (msg.startsWith('Load')) setStatus('Loading model...', 'loading')
+  else if (msg.startsWith('Err'))  setStatus(msg, 'error')
+  else                             setStatus(msg, 'loading')
+
+  // Big emotion card
+  document.getElementById('emoEmoji').textContent = EMO_EMOJI[emo] || '😐'
+  document.getElementById('emoName').textContent  = emo.toUpperCase()
+  document.getElementById('emoName').style.color  = col
+  document.getElementById('emoConf').textContent  = `Confidence: ${conf.toFixed(1)}%`
+  document.getElementById('emoTime').textContent  = `Detected at ${new Date().toLocaleTimeString()}`
+  document.getElementById('emoBig').className     = `emo-big ${neg ? 'neg' : 'pos'}`
+
+  // Overlay tag
+  // Show face detected status
+  if (!d.face_detected && d.total > 0) {
+    document.getElementById('emotag').textContent = '👁️ No face detected'
+    document.getElementById('emotag').style.color = '#64748b'
+  } else {
+    document.getElementById('emotag').textContent = `${EMO_EMOJI[emo]||''} ${emo.toUpperCase()} ${conf.toFixed(0)}%`
+    document.getElementById('emotag').style.color  = col
+  }
+
+  // Alert banner
+  document.getElementById('alertBanner').className = `alert${d.is_negative && conf > 30 ? ' show' : ''}`
+
+  // Stats
+  document.getElementById('mAlerts').textContent = d.alerts || 0
+  document.getElementById('mTotal').textContent  = tot
+
+  // Confidence bars from real scores
+  if (d.all_scores && Object.keys(d.all_scores).length > 0) {
+    drawConfBars(d.all_scores)
+  }
+
+  // History list + emoCount
+  if (d.history && d.history.length > 0) {
+    // Rebuild emoCount from history
+    emoCount = {}
+    d.history.forEach(h => {
+      const e = h.emotion.toLowerCase()
+      emoCount[e] = (emoCount[e] || 0) + 1
+    })
+
+    // Positive %
+    const pos = (emoCount['happy']||0) + (emoCount['neutral']||0)
+    document.getElementById('mPos').textContent =
+      tot > 0 ? Math.round(pos / tot * 100) + '%' : '—'
+
+    // Timeline — add latest only if face detected
+    const latest = d.history[0]
+    if (latest && d.face_detected) {
+      tlArr.push(latest.emotion.toLowerCase())
+      if (tlArr.length > 50) tlArr.shift()
+      drawTL()
+    }
+
+    // Detection log
+    document.getElementById('histList').innerHTML =
+      d.history.slice(0, 15).map(h => `
+        <div class="hi">
+          <span class="hi-emoji">${EMO_EMOJI[h.emotion.toLowerCase()]||'😐'}</span>
+          <div class="hi-info">
+            <div class="hi-emo" style="color:${EMO_COLORS[h.emotion.toLowerCase()]||'#94a3b8'}">${h.emotion}</div>
+            <div class="hi-ts">${h.time}</div>
+          </div>
+          <div class="hi-conf">${h.conf ? h.conf.toFixed(0)+'%' : ''}</div>
+        </div>
+      `).join('')
+
+    drawDonut()
+  }
+
+  // New alert received
+  if ((d.alerts || 0) > prevAlerts) {
+    prevAlerts = d.alerts
+    alerts.unshift({ emotion: emo, time: new Date().toLocaleTimeString() })
+    drawAlerts()
+  }
+}
+
+// ── Status badge helper ───────────────────────────────────
+function setStatus(msg, type) {
+  const el = document.getElementById('statusMsg')
+  el.textContent  = msg
+  el.className    = `tb-status ${type === 'live' ? '' : type}`
+}
+
+// ── Confidence bars ───────────────────────────────────────
+function drawConfBars(scores) {
+  const sorted = Object.entries(scores).sort((a,b) => b[1] - a[1])
+  document.getElementById('confBars').innerHTML = sorted.map(([e, v]) => `
+    <div class="cf-row">
+      <div class="cf-top">
+        <span class="cf-lbl">${EMO_EMOJI[e]||''} ${e}</span>
+        <span class="cf-pct" style="color:${EMO_COLORS[e]||'#94a3b8'}">${v.toFixed(1)}%</span>
+      </div>
+      <div class="cf-track">
+        <div class="cf-fill" style="width:${Math.min(v,100)}%;background:${EMO_COLORS[e]||'#7c3aed'}"></div>
+      </div>
+    </div>
+  `).join('')
+}
+
+// ── Timeline bars ─────────────────────────────────────────
+function drawTL() {
+  const el = document.getElementById('tlBars')
+  if (!tlArr.length) {
+    el.innerHTML = '<div class="tl-empty">Waiting for detections...</div>'
+    return
+  }
+  el.innerHTML = tlArr.map((e, i) => {
+    const h = 4 + (i / tlArr.length) * 40
+    const op = 0.35 + (i / tlArr.length) * 0.65
+    return `<div class="tl-bar" style="height:${h}px;background:${EMO_COLORS[e]||'#94a3b8'};opacity:${op};flex:1" title="${e}"></div>`
+  }).join('')
+}
+
+// ── Donut chart ───────────────────────────────────────────
+function drawDonut() {
+  const rc  = document.getElementById('donut')
+  const ctx = rc.getContext('2d')
+  const W=130, H=130, cx=65, cy=65, r=48, iw=28
+  ctx.clearRect(0,0,W,H)
+
+  const total = Object.values(emoCount).reduce((a,b)=>a+b, 0)
+  if (!total) {
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2)
+    ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=iw;ctx.stroke()
+    document.getElementById('donutLg').innerHTML =
+      '<div style="font-size:.72rem;color:var(--t3)">No data yet</div>'
+    return
+  }
+
+  let start = -Math.PI / 2
+  const legend = []
+  Object.entries(emoCount)
+    .sort((a,b)=>b[1]-a[1])
+    .forEach(([e, c]) => {
+      const ang = (c / total) * Math.PI * 2
+      ctx.beginPath()
+      ctx.arc(cx, cy, r, start, start + ang)
+      ctx.strokeStyle = EMO_COLORS[e] || '#7c3aed'
+      ctx.lineWidth   = iw
+      ctx.stroke()
+      legend.push({ e, c, pct: Math.round(c/total*100) })
+      start += ang
+    })
+
+  // Center label
+  ctx.font = 'bold 15px Space Grotesk, sans-serif'
+  ctx.fillStyle = '#f8fafc';ctx.textAlign = 'center'
+  ctx.fillText(total, cx, cy + 5)
+  ctx.font = '9px Inter';ctx.fillStyle = '#64748b'
+  ctx.fillText('detected', cx, cy + 18)
+
+  document.getElementById('donutLg').innerHTML = legend.slice(0,5).map(l => `
+    <div class="dl">
+      <div class="dl-dot" style="background:${EMO_COLORS[l.e]}"></div>
+      <span class="dl-lbl">${l.e}</span>
+      <span class="dl-pct">${l.pct}%</span>
+    </div>
+  `).join('')
+}
+
+// ── Alert list ────────────────────────────────────────────
+function drawAlerts() {
+  document.getElementById('alList').innerHTML = alerts.length === 0
+    ? '<div class="al-empty">No alerts triggered</div>'
+    : alerts.map(a => `
+        <div class="al-item">
+          <div class="al-emo">${EMO_EMOJI[a.emotion]||''} ${a.emotion}</div>
+          <div class="al-ts">${a.time} — sustained 5+ seconds</div>
+        </div>
+      `).join('')
+}
+
+// ── Export ────────────────────────────────────────────────
+function exportReport() {
+  const e = Math.floor((Date.now()-T0)/1000)
+  const lines = [
+    'EmoSense AI — Session Report',
+    `Date: ${new Date().toLocaleDateString()}`,
+    `Time: ${new Date().toLocaleTimeString()}`,
+    `Duration: ${Math.floor(e/60)}m ${e%60}s`,
+    `Total Alerts: ${alerts.length}`,
+    '',
+    'Emotion Breakdown:',
+    ...Object.entries(emoCount).map(([k,v])=>`  ${k}: ${v} detections`),
+    '',
+    'Alert Log:',
+    ...(alerts.length ? alerts.map(a=>`  ${a.time} — ${a.emotion}`) : ['  None']),
+  ]
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = `emosense-report-${Date.now()}.txt`
+  a.click()
+}
+</script>
+</body>
+</html>

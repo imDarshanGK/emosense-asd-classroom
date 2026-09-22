@@ -1,0 +1,75 @@
+============================================================
+  EmoSense AI — Local Setup Guide
+============================================================
+
+Important:
+- This project is a local demo/prototype for classroom emotion monitoring.
+- Use Python 3.10 or 3.11 for best compatibility.
+- Python 3.14 is not recommended because TensorFlow builds are not available.
+
+STEP 1: Install Python
+----------------------
+Download Python 3.10 or 3.11 from python.org.
+Make sure "Add Python to PATH" is selected during install.
+
+STEP 2: Open a terminal / command prompt
+----------------------------------------
+Windows: Press Win + R, type cmd, then Enter
+Mac/Linux: open a terminal
+
+STEP 3: Go to the project folder
+--------------------------------
+cd path/to/EmoSense_BUGFIXED_FINAL
+
+Example:
+  cd C:\Users\YourName\Downloads\EmoSense_BUGFIXED_FINAL
+
+STEP 4: Create a virtual environment (recommended)
+----------------------------------------------------
+  python -m venv .venv
+
+  Windows:
+    .venv\Scripts\activate
+
+  macOS/Linux:
+    source .venv/bin/activate
+
+STEP 5: Install dependencies
+----------------------------
+  pip install -r requirements.txt
+
+This may take several minutes on the first run.
+
+STEP 6: Run the app
+-------------------
+  python app.py
+
+Then open:
+  http://localhost:5000
+
+STEP 7: Use the dashboard
+-------------------------
+- The app will start the webcam stream and emotion detection thread.
+- The dashboard shows live status and recent emotion history.
+- Audio alerts work only when pyttsx3 can initialize on your machine.
+
+============================================================
+  TROUBLESHOOTING
+============================================================
+
+Problem: "Camera not found"
+Fix: close any app that is using the webcam, then restart the app.
+
+Problem: "ModuleNotFoundError: deepface"
+Fix: run: pip install -r requirements.txt
+
+Problem: "pip is not recognized"
+Fix: reinstall Python and enable "Add Python to PATH".
+
+Problem: TensorFlow install fails
+Fix: use Python 3.10 or 3.11. TensorFlow 2.15 is the compatible target range.
+
+Problem: Port 5000 already in use
+Fix: change the port in app.py or run the app on another free port.
+
+============================================================
